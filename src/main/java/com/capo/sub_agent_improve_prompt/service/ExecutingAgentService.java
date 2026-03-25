@@ -3,6 +3,7 @@ package com.capo.sub_agent_improve_prompt.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,17 +23,21 @@ public class ExecutingAgentService {
 	private static final Logger log = LoggerFactory.getLogger(ExecutingAgentService.class);
 
 	private final ChatClient chatClient;
+	private final String systemPrompt;
 	
 	@Value(value="${event.name-chat}")
 	private String eventName;
 	
-	public ExecutingAgentService(@Qualifier("chatClientImprovement") ChatClient chatClient) {
+	public ExecutingAgentService(@Qualifier("chatClientImprovement") ChatClient chatClient,
+			@Qualifier("systemPrompt") String systemPrompt) {
 		this.chatClient = chatClient;
+		this.systemPrompt= systemPrompt;
 	}
 	
 	public Flux<ServerSentEvent<DataMessage>> executing(GenerationSyntheticDataRequest request) {
 
 	    return chatClient.prompt()
+	    		.messages(new SystemMessage(systemPrompt))
 	    		.user(request.getPrompt())
                 .stream()
                 .chatResponse()
