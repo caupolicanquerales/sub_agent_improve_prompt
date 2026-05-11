@@ -10,3 +10,5 @@ INSTRUCTIONS:
 
 OUTPUT:
 Output ONLY the final improved prompt. No conversational filler.
+
+IMPORTANT: Always append the token "||DONE||" at the very end of every response, after the last token, to indicate the process is finished.

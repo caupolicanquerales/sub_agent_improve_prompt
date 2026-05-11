@@ -42,13 +42,10 @@ public class ExecutingAgentService {
                 .stream()
                 .chatResponse()
                 .map(this::getTokenMessage)
+                .filter(content -> !content.isBlank())
                 .map(ConverterUtil::setDataMessage)
                 .map(data -> ConverterUtil.setServerSentEvent(data, eventName))
                 .doOnComplete(() -> log.info("AI Stream Finished. Sending completion flag..."))
-        	    .concatWith(Flux.defer(() -> {
-        	        DataMessage finalMsg = ConverterUtil.setDataMessage(eventName + "-COMPLETED");
-        	        return Flux.just(ConverterUtil.setServerSentEvent(finalMsg, eventName));
-        	    }))
         	    .doOnTerminate(() -> log.info("HTTP Response fully closed on server"))
         	    .onErrorResume(WebClientResponseException.class, e -> {
         	        String errorBody = e.getResponseBodyAsString();
@@ -59,9 +56,9 @@ public class ExecutingAgentService {
 	
 	private String getTokenMessage(ChatResponse chatResponse) {
 	    if (chatResponse == null || chatResponse.getResult() == null) {
-	        return "The sub-agent was unable to process the request.";
+	        return "";
 	    }
 	    String content = chatResponse.getResult().getOutput().getText();
-	    return (content != null && !content.isEmpty()) ? content : "Error: Sub-agent could not generate a response.";
+	    return (content != null) ? content : "";
 	}
 }
